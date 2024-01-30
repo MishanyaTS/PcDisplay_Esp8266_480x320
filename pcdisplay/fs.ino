@@ -162,3 +162,10 @@ void handleFileList() {
   output += "]";
   server.send(200, "text/json", output);
 }
+
+void handle_reboot_page(){
+  server.sendHeader("Location", "/index.html");
+  server.send(303);
+  delay(500);
+  ESP.restart();
+}

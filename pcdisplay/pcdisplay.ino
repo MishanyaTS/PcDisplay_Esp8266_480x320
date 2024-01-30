@@ -20,16 +20,15 @@ TFT_eSPI tft = TFT_eSPI(); // создаем экземпляр объекта T
 
   #define BTN_PIN 4 //сенсорная кнопка
 
-
 StaticJsonDocument<1600> owm; //выделение памяти для json файла погоды
-const char* ssid = "Metro-50"; //ssid точки доступа
-const char* password = "9828862654"; //пароль
+const char* ssid = "ssid"; //ssid точки доступа
+const char* password = "password"; //пароль
 //настройки синхронизации погоды
 const String api_1 = "http://api.openweathermap.org/data/2.5/weather?q=";
 const String qLocation = "Nizhnevartovsk,ru";  //ваш город
 const String api_2 = "&lang=ru&units=metric"; //язык и температура в градусах цельсия
 const String api_3 = "&APPID=";
-const String api_key = "9360060c49e90dcdf70ee4ecc3bce721";  //ваш api ключ
+const String api_key = "xxxxx";  //ваш api ключ
 //
 int timezone = 5; //часовой пояс для синхронизации времени
 
@@ -44,20 +43,7 @@ int sync_interval=5000;
 int i=0;
 String responce;
 //Sensors init
-  String dataServer="http://192.168.0.195:8085/data.json";
-  String token="$$$$$$$$$$$$$$$$$$$$$$$";
-  /*String cpuName = "none";'
-  String cpuTempPackage = "0";
-  String cpuLoad = "0";
-  String gpuName = "none";
-  String gpuHotSpot = "0";
-  String gpuLoad = "0";
-  String usedRAM = "0";
-  String freeRAM = "0";
-  String gpuRAMused = "0";
-  String gpuRAM = "0";
-  String cpuFAN = "100";
-  String gpuFAN = "100";*/
+  String dataServer="http://192.168.0.194:8085/data.json";
   String degree = degree.substring(degree.length()) + "°C";
   String percentage = percentage.substring(percentage.length()) + (char)37;
   float total;
@@ -1001,7 +987,6 @@ const unsigned char temp [] PROGMEM = {
  }
      
 void setup(void) {
-  
   // Инициализация дисплея
   tft.init(); // инициализируем дисплей
   tft.setRotation (1);
@@ -1033,13 +1018,14 @@ void setup(void) {
   tft.print("IP адрес: ");
   tft.println(WiFi.localIP());
   sendRqs();
-  moneycheck();
  if (WiFi.getMode()==WIFI_STA){
  timeClient.begin();
  tft.println("Синхронизация времени началась");
  
   server.on("/",handle_index_page);
   server.on("/changeserver",handle_changeserver);
+  server.on("/", handle_index_page);
+  server.on("/reboot", handle_reboot_page);
   tft.println("Веб-интерфейс запущен");
   FS_init();
   tft.println("Файловая система запущена");
@@ -1059,8 +1045,6 @@ void setup(void) {
   }
 }
 
-
-
 void loop() {
    if (WiFi.getMode()==WIFI_STA){
   butt1.tick(); 
@@ -1078,11 +1062,6 @@ void loop() {
  if (refweather.isReady()){
  sendRqs(); //синхронизация погоды
  }
- if (refmoney.isReady()){
- moneycheck(); //синхронизация партнерки яндекс
- }
    }
   }
-
  
-  

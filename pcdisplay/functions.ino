@@ -2,12 +2,13 @@
 //генерация web интерфейса для настройки параметров подключения
 void handle_index_page(){
    String webpage;
-   webpage="<html lang='ru'>";
+  webpage="<html lang='ru'>";
   webpage+="<head>";
   webpage+="<meta http-equiv='Content-type' content='text/html; charset=utf-8'>";
   webpage+="<link rel='stylesheet' href='/bootstrap.min.css'>";
   webpage+="<link rel='stylesheet' type='text/css' href='/style.css'>";
   webpage+="<script type='text/javascript' src='/function.js'></script>";
+  webpage+="<link rel='icon' href='/favicon.ico'>"; // Добавленная строка для отображения иконки в web адресе
   webpage+="<meta name='viewport' content='width=device-width, initial-scale=1.0'>";
   webpage+="<title>Настройки</title>";
   webpage+="<script type='text/javascript'>";
@@ -18,6 +19,15 @@ void handle_index_page(){
   webpage+="function token_send(submit){";
   webpage+="newtoken = '/changetoken?edtoken='+val('token');";
   webpage+="send_request(submit,newtoken);";
+  webpage+="}";
+  webpage+="function reboot(submit){";
+  webpage+="send_request(submit,'/reboot');";
+  webpage+="}";
+  webpage+="function update_firmware(submit){";
+  webpage+="window.location.href = '/update.htm';";
+  webpage+="}";
+  webpage+="function open_edit(submit){";
+  webpage+="window.location.href = '/edit';";
   webpage+="}";
   webpage+="</script>";
   webpage+="</head>";
@@ -30,17 +40,15 @@ void handle_index_page(){
   webpage+="<div class='alert alert-dismissible alert-info'>";
   webpage+="<input id='dataserver' value='"+dataServer+"' class='form-control'>";
   webpage+="<input class='btn btn-block btn-success' value='Сохранить' onclick='data_server(this);' type='submit'></div>";
-  webpage+="<div class='alert alert-dismissible alert-info'>";
-  webpage+="<h2>Токен РСЯ:</h2>";
-  webpage+="<div class='alert alert-dismissible alert-info'>";
-  webpage+="<input id='token' value='"+token+"' class='form-control'>";
-  webpage+="<input class='btn btn-block btn-success' value='Сохранить' onclick='token_send(this);' type='submit'>";
+  webpage+="<input class='btn btn-block btn-primary' value='Редактор' onclick='open_edit(this);' type='submit'>"; // Добавленная кнопка для перехода в редактор
+  webpage+="<input class='btn btn-block btn-danger' value='Перезагрузка' onclick='reboot(this);' type='submit'>"; // Добавленная кнопка для перезагрузки
+  webpage+="<input class='btn btn-block btn-primary' value='Обновить прошивку' onclick='update_firmware(this);' type='submit'>"; // Добавленная кнопка для обновления прошивки
   webpage+="</div></div></div></div>";
   webpage+="</body>";
-webpage+="</html>";
-server.send(200, "text/html", webpage);
-
+  webpage+="</html>";
+  server.send(200, "text/html", webpage);
 }
+
 //фунция сохранения настроек подключения к LHM через WEB интерфейс
 void handle_changeserver() {               
   File myFile;
@@ -56,7 +64,6 @@ void handle_changetoken() {
   dataServer = server.arg("token");
   server.send(200, "text/plain", "OK"); 
    myFile = SPIFFS.open("/token.txt", "w");
-  myFile.print(token);
   myFile.close();
 }
  
@@ -409,98 +416,10 @@ case 0:
       tft.print(printTime());
       draw_weather();
  break;
- case 4:
-      tft.setTextColor(TFT_WHITE,TFT_BLACK);
-      tft.setTextSize(1);
-      tft.setCursor(5,10);
-      draw_partner();
- break;
  }  
-}
-//обновление данных о партнерке
-void moneycheck(){
-  String serverPath = "https://partner2.yandex.ru/api/statistics2/get.json?lang=ru&pretty=1?&dimension_field=date|day&period=thismonth&field=partner_wo_nds";
-WiFiClientSecure client2;
-  HTTPClient https;
-  https.useHTTP10(true);
-  client2.setInsecure();
-  https.begin(client2,serverPath);
-  https.addHeader("Authorization",token);
-  int httpCode = https.GET();
-  if (httpCode > 0) { 
-//String response = https.getString();
-DynamicJsonDocument yan(8000);
-DeserializationError error = deserializeJson(yan, https.getStream());
-
-if (error) {
-  Serial.print(F("money check failed: "));
-  Serial.println(error.f_str());
-}
- else{
-      JsonObject data = yan["data"];
-      const char* data_periods_0_0 = data["periods"][0][0]; // "2023-01-01"
-      const char* data_periods_0_1 = data["periods"][0][1]; // "2023-01-22"
-      int data_total_rows = data["total_rows"]; // 22
-      
-      for (i==0; i<32; i++){
-        vals[i]=0;
-        Serial.println(vals[i]);
-      }
-      i=0;
-      for (JsonObject data_point : data["points"].as<JsonArray>()) {
-      vals[i] = data_point["measures"][0]["partner_wo_nds"]; // 129.01, ...
-      if (vals[i]>vals[31]){
-        vals[31]=vals[i];
-         }
-      i++;
-      }
-      total = data["totals"]["2"][0]["partner_wo_nds"]; // 781.38
-    }
-    }else{
-    Serial.println("https.GET() == 0");
-  }
-  
-  https.end();   //Close connection 
-}
-
-void draw_partner(){
-tft.drawRoundRect (0, 10, 160, 45, 5, 0x0400);
-tft.drawRoundRect (0, 60, 160, 50, 5, 0xFE68);
- tft.setTextColor(0x0400,TFT_BLACK);
-      tft.setTextSize(2);
-      tft.setCursor(3,15);
-      tft.print("Today: ");
-      tft.println(vals[i-1]);
-       tft.setTextSize(1);
-       tft.setCursor(5,35);
-       tft.setTextColor(0x345A,TFT_BLACK);
-      tft.print("Yesterday: ");
-tft.println(vals[i-2]);
-tft.setCursor(5,45);
-tft.setTextColor(0x331A,TFT_BLACK);
-tft.print("2 days ago: ");
-tft.println(vals[i-3]);
-
-tft.setTextColor(0xD962,TFT_BLACK);
-      tft.setCursor(5,113); 
-tft.setTextSize(2);
-tft.print("Total:");
-tft.println(total);
-uint16_t tabcol;
-for (byte j=0; j<31; j++) {
-  tabcol=0xD962;
-  long maxval=500+(floor(vals[31]/1000)*1000);
-long dayvalue = map(vals[j], 0, maxval, 0, 50);
-Serial.println(maxval);
-Serial.println(dayvalue);
-if (dayvalue>10) tabcol=0xFE68;
-if (vals[j]>24) tabcol=0x0400;
-tft.fillRect (3+j*5, 105-dayvalue, 4, dayvalue,tabcol);
-}
 }
 
 //обновление погоды
-
 void sendRqs(){
    WiFiClient client;
   HTTPClient http;
@@ -511,7 +430,6 @@ void sendRqs(){
 
     String response = http.getString();
     
-
     Serial.println(response);
 
     // Deserialize the JSON document
@@ -619,7 +537,7 @@ void draw_weather(){
            if (main_temp>=5) color=0xF705;
            if (main_temp>20) color=0xF005;
            if (main_temp<5) color=0x0E3F;
-           if (main_temp<=-10) color=0x001D;
+           if (main_temp<=-10) color=TFT_RED;
 
            tft.setCursor(220,160);
            tft.setTextSize(2);
@@ -631,7 +549,7 @@ void draw_weather(){
            tft.setTextSize(6);
            tft.setTextColor(color,TFT_BLACK);
        tft.print (String(main_temp)+degree);
-       tft.setCursor(20,200); 
+       tft.setCursor(30,200); 
            tft.setTextSize(2);
            tft.setTextColor(TFT_WHITE,TFT_BLACK);
         tft.print (weather_0_description);
@@ -677,5 +595,3 @@ void draw_weather(){
   }
       
     }
-
-  
