@@ -16,10 +16,6 @@ void handle_index_page(){
   webpage+="server = '/changeserver?adress='+val('dataserver');";
   webpage+="send_request(submit,server);";
   webpage+="}";
-  webpage+="function token_send(submit){";
-  webpage+="newtoken = '/changetoken?edtoken='+val('token');";
-  webpage+="send_request(submit,newtoken);";
-  webpage+="}";
   webpage+="function reboot(submit){";
   webpage+="send_request(submit,'/reboot');";
   webpage+="}";
@@ -59,14 +55,6 @@ void handle_changeserver() {
   myFile.close();
 }
 
-void handle_changetoken() {               
-  File myFile;
-  dataServer = server.arg("token");
-  server.send(200, "text/plain", "OK"); 
-   myFile = SPIFFS.open("/token.txt", "w");
-  myFile.close();
-}
- 
  //функция вывода времени полученного по NTP в формате HH:MM
  String printTime(){
  byte h,m;
@@ -103,7 +91,7 @@ void handle_changetoken() {
           String payload = http.getString();
           Serial.println(payload);
           //если доступен после длительного перерыва снижаем интервал опроса датчиков, сбрасываем счетчик и переходим на экран отображения датчиков
-          if (syncerror>6 && screen==3){
+          if (syncerror>6 && screen==4){
             sync_interval=5000;
             refsens.setInterval(sync_interval);
             tft.fillScreen(TFT_BLACK);
@@ -122,9 +110,9 @@ void handle_changetoken() {
           sync_interval=30000;
           refsens.setInterval(sync_interval);
           syncerror++;
-          if (screen!=3){
+          if (screen!=4){
             tft.fillScreen(TFT_BLACK);
-          screen=3;
+          screen=4;
           }
         }
         return;
@@ -152,20 +140,26 @@ filter_Children_0_Children_0_Children_0_Children_0["Children"][0]["Value"] = tru
     ["Children"][0]["Children"][0] - материнская плата
    */
    String cpuName = doc["Children"][0]["Children"][1]["Text"]; // название процессора
-   String cpuTempPackage = doc["Children"][0]["Children"][1]["Children"][1]["Children"][8]["Value"];  // температура процессора
-   String cpuLoad = doc["Children"][0]["Children"][1]["Children"][2]["Children"][0]["Value"];  // загрузка процессора
+   String cpuTempPackage = doc["Children"][0]["Children"][1]["Children"][3]["Children"][6]["Value"];  // температура процессора
+   String cpuLoad = doc["Children"][0]["Children"][1]["Children"][4]["Children"][0]["Value"];  // загрузка процессора
    String cpuFAN= doc["Children"][0]["Children"][0]["Children"][0]["Children"][3]["Children"][1]["Value"];  // скорость вент процессора
    String gpuName = doc["Children"][0]["Children"][3]["Text"];  //название видеокарты
-   String gpuTemp = doc["Children"][0]["Children"][3]["Children"][1]["Children"][0]["Value"];  // температура видеокарты
-   String gpuLoad = doc["Children"][0]["Children"][3]["Children"][2]["Children"][0]["Value"];  // загрузка видеокарты
-   String gpuFAN = doc["Children"][0]["Children"][3]["Children"][4]["Children"][0]["Value"];  // скорость вент видеокарты
+   String gpuTemp = doc["Children"][0]["Children"][3]["Children"][2]["Children"][0]["Value"];  // температура видеокарты
+   String gpuLoad = doc["Children"][0]["Children"][3]["Children"][3]["Children"][0]["Value"];  // загрузка видеокарты
+   String gpuFAN = doc["Children"][0]["Children"][3]["Children"][5]["Children"][0]["Value"];  // скорость вент видеокарты
   String loadRAM = doc["Children"][0]["Children"][2]["Children"][0]["Children"][0]["Value"];  // загрузка пямяти
   String usedRAM = doc["Children"][0]["Children"][2]["Children"][1]["Children"][0]["Value"];  // использовано памяти
-  String gpuRAM = doc["Children"][0]["Children"][3]["Children"][2]["Children"][4]["Value"];  // загрузка памяти видеокарты
+  String gpuRAM = doc["Children"][0]["Children"][3]["Children"][3]["Children"][3]["Value"];  // загрузка памяти видеокарты
   String gpuRAMused = doc["Children"][0]["Children"][3]["Children"][6]["Children"][1]["Value"];  // использовано памяти видеокарты 
+  String m2Temp = doc["Children"][0]["Children"][4]["Children"][0]["Children"][0]["Value"];  // температура m2
+  String m2Load = doc["Children"][0]["Children"][4]["Children"][1]["Children"][3]["Value"];  // загрузка m2
+  String hddTemp = doc["Children"][0]["Children"][6]["Children"][0]["Children"][0]["Value"];  // температура hdd
+  String hddLoad = doc["Children"][0]["Children"][6]["Children"][1]["Children"][2]["Value"];  // загрузка hdd
+  String ethUpload = doc["Children"][0]["Children"][7]["Children"][2]["Children"][0]["Value"];  // загрузка eth
+  String ethDown = doc["Children"][0]["Children"][7]["Children"][2]["Children"][1]["Value"];  // загрузка eth
 
   
-  //String degree = degree.substring(degree.length()) + (char)247 + "C";
+  //String degree = degree.substring(degree.length()) + "°C";
   //String percentage = percentage.substring(percentage.length()) + (char)37;
   //здесь строим графики
   if (cpu_index<99){
@@ -243,7 +237,6 @@ filter_Children_0_Children_0_Children_0_Children_0["Children"][0]["Value"] = tru
       tft.println("Load:" + loadRAM);
 
       // RAM
-
       tft.setTextSize(3);
       tft.setCursor(10, 267);
       tft.println("U:" + usedRAM);
@@ -251,7 +244,6 @@ filter_Children_0_Children_0_Children_0_Children_0["Children"][0]["Value"] = tru
       //gpu ram
       tft.setTextSize(3);
       tft.setTextColor(TFT_YELLOW, TFT_BLACK);
-      
       tft.setCursor(250, 222);
       tft.setTextSize(3);
       tft.print("RAM:");
@@ -263,20 +255,65 @@ filter_Children_0_Children_0_Children_0_Children_0["Children"][0]["Value"] = tru
       tft.setCursor(250, 267);
       tft.print("U:");
       tft.print(gpuRAMused);
-  }
+
+        }
   if (screen==1){
-    tft.setTextColor(0x0E3F,TFT_BLACK);
-     tft.setCursor(115,23);
-      tft.print(cpuName);
+     //m2
+      tft.setTextColor(TFT_CYAN, TFT_BLACK);
+      tft.setCursor(10, 65);
+      tft.setTextSize(3);
+      tft.print("Temp:" + m2Temp);
+
+      // m2 - Load
+      tft.setTextSize(3);
+      tft.setCursor(10, 105);
+      tft.print("Load:" + m2Load);
+
+     //hdd
+      tft.setTextColor(TFT_GREENYELLOW, TFT_BLACK);
+      tft.setCursor(250, 65);
+      tft.setTextSize(3);
+      tft.print("Temp:" + hddTemp);
+
+      // hdd - Load
+      tft.setTextSize(3);
+      tft.setCursor(250, 105);
+      tft.print("Load:" + m2Load);
+
+      // eth - Upload
+      tft.setTextColor(TFT_GOLD, TFT_BLACK);
+      tft.setTextSize(3);
+      tft.setCursor(10, 222);
+      tft.print("Up:" + ethUpload);
+     
+      // eth - Down  
+      tft.setTextSize(3);
+      tft.setCursor(10, 267);
+      tft.print("D:" + ethDown);  
+      
+      //
+      tft.setTextColor(TFT_SILVER, TFT_BLACK);
+      tft.setTextSize(2);
+      tft.setCursor(250, 222);
+      tft.print("WiFi: ");
+      tft.println(ssid);
+      tft.setCursor(250, 267);
+      tft.print("IP: ");
+      tft.println(WiFi.localIP());
   }
   if (screen==2){
+    tft.setTextColor(0x0E3F,TFT_BLACK);
+     tft.setCursor(65,23);
+      tft.print(cpuName);
+  }
+  if (screen==3){
     tft.setTextColor(TFT_GREEN,TFT_BLACK);
-     tft.setCursor(57,23);
+     tft.setCursor(100,23);
       tft.print(gpuName);
   }
   }
   http.end();
-  if (screen>3) {sync_interval=30000;} else { if (syncerror<6) sync_interval=5000;} 
+  if (screen>4) {sync_interval=30000;} else { if (syncerror<6) sync_interval=5000;} 
   refsens.setInterval(sync_interval);
   Serial.println(String(ESP.getFreeHeap()));
 }
@@ -289,18 +326,17 @@ void ScreenDraw(){
   tft.setTextColor(TFT_WHITE, TFT_BLACK);
   tft.setCursor(210,0);
   tft.setTextSize(2);
-  if (screen!=3) tft.print(printTime());
+  if (screen!=4) tft.print(printTime());
   tft.setTextColor(0x0E3F, TFT_BLACK);
   switch (screen){
     
-case 0:      
+ case 0:      
        //CPU 
       tft.drawRoundRect (0, 16, 238, 148, 7, 0x0E3F);
       tft.setCursor(20,25);
       tft.setTextColor(0x0E3F, TFT_BLACK);
       tft.setTextSize(3);
       tft.print("CPU");
-      
       
       //GPU - Temperature
       tft.drawRoundRect (240, 16, 238, 148, 7, TFT_GREEN);
@@ -309,7 +345,6 @@ case 0:
       tft.setCursor(260, 25);
       tft.print("GPU");
       
-  
       // RAM
       tft.drawRoundRect (0, 167, 238, 148, 7, TFT_ORANGE);
       tft.setTextColor(TFT_ORANGE, TFT_BLACK);
@@ -317,8 +352,6 @@ case 0:
       tft.setCursor(20, 177);
       tft.print("RAM");
       
-
-
       //GPU - RAM
       tft.drawRoundRect (240, 167, 238, 148, 7, TFT_YELLOW);
       tft.setTextSize(3);
@@ -327,7 +360,37 @@ case 0:
       tft.print("GPU RAM");
       
  break;
- case 1:
+ case 1:      
+      //m2 
+      tft.drawRoundRect (0, 16, 238, 148, 7, TFT_CYAN);
+      tft.setCursor(20,25);
+      tft.setTextColor(TFT_CYAN, TFT_BLACK);
+      tft.setTextSize(3);
+      tft.print("M2");
+      
+      //HDD
+      tft.drawRoundRect (240, 16, 238, 148, 7, TFT_GREENYELLOW);
+      tft.setTextSize(3);
+      tft.setTextColor(TFT_GREENYELLOW, TFT_BLACK);
+      tft.setCursor(260, 25);
+      tft.print("HDD");
+      
+      // Ethernet
+      tft.drawRoundRect (0, 167, 238, 148, 7, TFT_GOLD);
+      tft.setTextColor(TFT_GOLD, TFT_BLACK);
+      tft.setTextSize(3);
+      tft.setCursor(20, 177);
+      tft.print("Ethernet");
+      
+      //
+      tft.drawRoundRect (240, 167, 238, 148, 7, TFT_SILVER);
+      tft.setTextSize(3);
+      tft.setTextColor(TFT_SILVER, TFT_BLACK);
+      tft.setCursor(260, 177);
+      tft.print("PCDisplay");
+      
+ break;
+ case 2:
       tft.setTextWrap(false);
       tft.setCursor(7,55);
       tft.setTextColor(TFT_WHITE,TFT_BLACK);
@@ -368,7 +431,7 @@ case 0:
       tft.setCursor(435,245);
       tft.print(cur_temp);
  break;
- case 2:
+ case 3:
       tft.setTextWrap(false);
       tft.setCursor(7,55);
       tft.setTextColor(TFT_WHITE,TFT_BLACK);
@@ -385,9 +448,9 @@ case 0:
       cur_temp=gpu_temp[gpu_index-1];
       for (byte i=0;i<gpu_index;i++){
       tft.drawFastVLine(i+55,50,295-gpu_temp[i]*2.5,TFT_BLACK);
-      if (gpu_temp[i]<40) color=TFT_GREEN;
-      if (gpu_temp[i]>39 and gpu_temp[i]<60) color=TFT_YELLOW;
-      if (gpu_temp[i]>59)  color=TFT_RED;
+      if (gpu_temp[i]<50) color=TFT_GREEN;
+      if (gpu_temp[i]>49 and gpu_temp[i]<65) color=TFT_YELLOW;
+      if (gpu_temp[i]>64)  color=TFT_RED;
       tft.drawFastVLine(i+55,305-gpu_temp[i]*2.5,gpu_temp[i]*2.5,color);
       if (gpu_temp[i]<=min_temp) min_temp=gpu_temp[i];
       if (gpu_temp[i]>max_temp) max_temp=gpu_temp[i];  
@@ -409,7 +472,7 @@ case 0:
       tft.setCursor(435,245);
       tft.print(cur_temp);
  break;
- case 3:
+ case 4:
       tft.setTextColor(TFT_WHITE,TFT_BLACK);
       tft.setTextSize(7);
       tft.setCursor(150,5);

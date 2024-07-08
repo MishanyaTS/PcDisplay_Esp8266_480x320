@@ -43,7 +43,7 @@ int sync_interval=5000;
 int i=0;
 String responce;
 //Sensors init
-  String dataServer="http://192.168.0.194:8085/data.json";
+  String dataServer="http://192.168.0.195:8085/data.json";
   String degree = degree.substring(degree.length()) + "°C";
   String percentage = percentage.substring(percentage.length()) + (char)37;
   float total;
@@ -974,7 +974,6 @@ const unsigned char temp [] PROGMEM = {
        GTimer refsens(MS);
        GTimer refscreen(MS);
        GTimer refweather(MS);
-       GTimer refmoney(MS);
         //объявление сенсорной кнопки
      EncButton2<EB_BTN> butt1(INPUT, BTN_PIN);  
 //небольшая кнопка для обработки нажатия кнопки по прерыванию
@@ -982,7 +981,7 @@ const unsigned char temp [] PROGMEM = {
    if (butt1.click()) {
     tft.fillScreen(TFT_BLACK);
   screen++;
-  if (screen>3) screen=0;
+  if (screen>4) screen=0;
   }
  }
      
@@ -1002,7 +1001,6 @@ void setup(void) {
   refsens.setInterval(sync_interval); //Интервал обновления экрана датчиков
   refscreen.setInterval(1000); //интервал обновления экрана
   refweather.setInterval(300000);//интервал обновления погоды 5 минут
-  //refmoney.setInterval(600000); //10 минут
   //Device init
   Serial.begin(115200);
   tft.println("Серийный запущен 115200");
@@ -1064,4 +1062,3 @@ void loop() {
  }
    }
   }
- 
