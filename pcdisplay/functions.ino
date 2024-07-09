@@ -278,7 +278,7 @@ filter_Children_0_Children_0_Children_0_Children_0["Children"][0]["Value"] = tru
       // hdd - Load
       tft.setTextSize(3);
       tft.setCursor(250, 105);
-      tft.print("Load:" + m2Load);
+      tft.print("Load:" + hddLoad);
 
       // eth - Upload
       tft.setTextColor(TFT_GOLD, TFT_BLACK);
