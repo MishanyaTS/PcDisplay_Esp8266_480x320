@@ -92,7 +92,7 @@ void handle_changeserver() {
           Serial.println(payload);
           //если доступен после длительного перерыва снижаем интервал опроса датчиков, сбрасываем счетчик и переходим на экран отображения датчиков
           if (syncerror>6 && screen==4){
-            sync_interval=5000;
+            sync_interval=1000;
             refsens.setInterval(sync_interval);
             tft.fillScreen(TFT_BLACK);
             screen=0;
@@ -295,8 +295,7 @@ filter_Children_0_Children_0_Children_0_Children_0["Children"][0]["Value"] = tru
       tft.setTextColor(TFT_SILVER, TFT_BLACK);
       tft.setTextSize(2);
       tft.setCursor(250, 222);
-      tft.print("WiFi: ");
-      tft.println(ssid);
+      tft.print("WiFi: " + WiFi.SSID());
       tft.setCursor(250, 267);
       tft.print("IP: ");
       tft.println(WiFi.localIP());
@@ -313,7 +312,7 @@ filter_Children_0_Children_0_Children_0_Children_0["Children"][0]["Value"] = tru
   }
   }
   http.end();
-  if (screen>4) {sync_interval=30000;} else { if (syncerror<6) sync_interval=5000;} 
+  if (screen>4) {sync_interval=30000;} else { if (syncerror<6) sync_interval=1000;} 
   refsens.setInterval(sync_interval);
   Serial.println(String(ESP.getFreeHeap()));
 }
