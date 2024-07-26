@@ -169,3 +169,10 @@ void handle_reboot_page(){
   delay(500);
   ESP.restart();
 }
+
+void handle_change_screen() {
+  screen++;
+  if (screen > 4) screen = 0;
+  tft.fillScreen(TFT_BLACK);
+  server.send(200, "text/plain", "Screen changed");
+}

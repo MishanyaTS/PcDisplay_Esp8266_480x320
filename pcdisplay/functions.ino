@@ -25,6 +25,9 @@ void handle_index_page(){
   webpage+="function open_edit(submit){";
   webpage+="window.location.href = '/edit';";
   webpage+="}";
+  webpage += "function change_screen(submit){";
+  webpage += "send_request(submit,'/change_screen');";
+  webpage += "}";
   webpage+="</script>";
   webpage+="</head>";
   webpage+="<body>";
@@ -36,6 +39,7 @@ void handle_index_page(){
   webpage+="<div class='alert alert-dismissible alert-info'>";
   webpage+="<input id='dataserver' value='"+dataServer+"' class='form-control'>";
   webpage+="<input class='btn btn-block btn-success' value='Сохранить' onclick='data_server(this);' type='submit'></div>";
+  webpage+="<input class='btn btn-block btn-success' value='Сменить экран' onclick='change_screen(this);' type='submit'>"; // Добавленная кнопка для смены экрана
   webpage+="<input class='btn btn-block btn-primary' value='Редактор' onclick='open_edit(this);' type='submit'>"; // Добавленная кнопка для перехода в редактор
   webpage+="<input class='btn btn-block btn-danger' value='Перезагрузка' onclick='reboot(this);' type='submit'>"; // Добавленная кнопка для перезагрузки
   webpage+="<input class='btn btn-block btn-primary' value='Обновить прошивку' onclick='update_firmware(this);' type='submit'>"; // Добавленная кнопка для обновления прошивки

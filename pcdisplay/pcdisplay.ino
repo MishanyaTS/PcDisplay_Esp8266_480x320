@@ -125,8 +125,8 @@ void setup(void) {
  Serial.println("Синхронизация времени началась");
  
   server.on("/",handle_index_page);
+  server.on("/change_screen", handle_change_screen);
   server.on("/changeserver",handle_changeserver);
-  server.on("/", handle_index_page);
   server.on("/reboot", handle_reboot_page);
   Serial.print("Веб-интерфейс запущен");
   FS_init();
